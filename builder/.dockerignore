@@ -1,0 +1,10 @@
+public
+private
+tsconfig.tsbuildinfo
+replit.nix
+
+docs
+content
+*.md
+.*
+!.npmrc

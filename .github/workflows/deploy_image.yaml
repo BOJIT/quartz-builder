@@ -1,0 +1,41 @@
+name: Publish Docker image
+
+on:
+  push:
+    branches:
+      - v4
+jobs:
+  push_to_registry:
+    if: ${{ github.repository == 'BOJIT/quartz-builder' }}
+
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Get package version
+        run: node -p -e '`PACKAGE_VERSION=${require("./package.json").version}`' >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Check if keys are on disk
+        run: ls -al $HOME/.docker
+
+      - name: Check if version exists on Docker Hub
+        id: checkTag
+        continue-on-error: true
+        run: docker manifest inspect ${{ secrets.DOCKER_USERNAME }}/quartz:${{ env.PACKAGE_VERSION }}
+
+      - name: Build and push Docker image
+        if: steps.checkTag.outcome == 'failure'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./builder/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/quartz:${{ env.PACKAGE_VERSION }}, ${{ secrets.DOCKER_USERNAME }}/quartz:latest
