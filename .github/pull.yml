@@ -1,0 +1,7 @@
+version: "1"
+rules:
+  - base: v4
+    upstream: jackyzha0:v4
+    mergeMethod: merge
+    conflictReviewers:
+      - BOJIT
